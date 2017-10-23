@@ -5,6 +5,8 @@ try:
 except ImportError:
     import unittest
 
+from unittest.mock import patch
+
 if os.environ.get('TRAVIS') is None:
     from db_connector import DBConnector, GitHubData, PackageManagerData
     from config import Config
@@ -122,12 +124,15 @@ class TestDBConnector(unittest.TestCase):
 
 
 class TestGitHub(unittest.TestCase):
+
+    @patch.dict('os.environ', {'GITHUB_TOKEN': 'REDACTED'})
     def setUp(self):
         if os.environ.get('TRAVIS') == None:
             self.github = GitHub()
             self.db = DBConnector()
             self.config = Config()
 
+    @vcr.use_cassette('test/fixtures/get_github_data')
     def test_update_library_data(self):
         if os.environ.get('TRAVIS') == None:
             config = MOCK_DATA['github_config']
@@ -138,6 +143,8 @@ class TestGitHub(unittest.TestCase):
             self.assertTrue(res)
 
 
+# This is very tied to the languages that Sendgrid supports, but is
+# not generalizable to all PackageManager classes.
 class TestPackageManagers(unittest.TestCase):
     def setUp(self):
         if os.environ.get('TRAVIS') == None:
@@ -145,21 +152,26 @@ class TestPackageManagers(unittest.TestCase):
             self.db = DBConnector()
             self.config = Config()
 
+    @vcr.use_cassette('test/fixtures/get_package_manager_data')
     def test_update_package_manager_data(self):
         if os.environ.get('TRAVIS') == None:
             res = self.pm.update_package_manager_data(
-                self.config.package_manager_urls)
+                MOCK_DATA['package_urls'])
             self.assertTrue(isinstance(res, PackageManagerData))
             res = self.db.delete_data(res.id, 'package_manager_data')
             self.assertTrue(res)
 
 
+
 class TestSendGridEmail(unittest.TestCase):
+
+    @patch.dict('os.environ', {'SENDGRID_API_KEY': 'REDACTED'})
     def setUp(self):
         if os.environ.get('TRAVIS') == None:
             self.sg = SendGrid()
             self.config = Config()
 
+    @vcr.use_cassette('test/fixtures/send_sendgrid_email')
     def test_send_email(self):
         if os.environ.get('TRAVIS') == None:
             res = self.sg.send_email(
@@ -167,8 +179,9 @@ class TestSendGridEmail(unittest.TestCase):
                 self.config.from_email,
                 self.config.email_subject,
                 self.config.email_body
-                )
+            )
             self.assertEqual(202, res[0])
+
 
 if __name__ == '__main__':
     unittest.main()

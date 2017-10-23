@@ -1,0 +1,32 @@
+interactions:
+- request:
+    body: '{"from": {"email": "DX Team <dx@sendgrid.com>"}, "content": [{"value":
+      "Data logged to DB on Heroku.", "type": "text/plain"}], "personalizations":
+      [{"to": [{"email": "elmer.thomas+test@sendgrid.com"}]}], "subject": "Package
+      Manager Open Source Downloads and GitHub Data Updated [Automated]"}'
+    headers:
+      Accept: [application/json]
+      Authorization: [Bearer REDACTED]
+      Connection: [close]
+      Content-Length: ['291']
+      Content-Type: [application/json]
+      Host: [api.sendgrid.com]
+      User-Agent: [sendgrid/3.6.3;python]
+    method: POST
+    uri: https://api.sendgrid.com/v3/mail/send
+  response:
+    body: {string: ''}
+    headers:
+      Access-Control-Allow-Headers: ['Authorization, Content-Type, On-behalf-of, x-sg-elas-acl']
+      Access-Control-Allow-Methods: [POST]
+      Access-Control-Allow-Origin: ['https://sendgrid.api-docs.io']
+      Access-Control-Max-Age: ['600']
+      Connection: [close]
+      Content-Length: ['0']
+      Content-Type: [text/plain; charset=utf-8]
+      Date: ['Mon, 23 Oct 2017 01:52:29 GMT']
+      Server: [nginx]
+      X-Message-Id: [olIHMcpGScuj3gasX_OKuQ]
+      X-No-CORS-Reason: ['https://sendgrid.com/docs/Classroom/Basics/API/cors.html']
+    status: {code: 202, message: Accepted}
+version: 1
