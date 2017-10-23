@@ -4,12 +4,14 @@ try:
     import unittest2 as unittest
 except ImportError:
     import unittest
+
 if os.environ.get('TRAVIS') is None:
     from db_connector import DBConnector, GitHubData, PackageManagerData
     from config import Config
     from github import GitHub
     from package_managers import PackageManagers
     from sendgrid_email import SendGrid
+    import vcr
 try:
     basestring
 except NameError:
@@ -45,40 +47,68 @@ class TestConfig(unittest.TestCase):
             self.assertTrue(isinstance(self.config.email_subject, basestring))
             self.assertTrue(isinstance(self.config.email_body, basestring))
 
+# This dummy config prevents changes to the user-defined config
+# from changing their results when doing testing.
+MOCK_DATA = {
+    'package_urls': [
+        "https://www.nuget.org/packages/SendGrid",
+        "https://www.nuget.org/packages/SendGrid.CSharp.HTTP.Client",
+        "https://www.npmjs.com/package/sendgrid",
+        "https://www.npmjs.com/package/sendgrid-rest",
+        "https://packagist.org/packages/sendgrid/sendgrid",
+        "https://packagist.org/packages/sendgrid/php-http-client",
+        "https://pypi.python.org/pypi/sendgrid",
+        "https://pypi.python.org/pypi/python_http_client",
+        "https://pypi.python.org/pypi/open_source_library_data_collector",
+        "https://rubygems.org/gems/sendgrid-ruby",
+        "https://rubygems.org/gems/ruby_http_client",
+    ],
+    'github_config': {
+        'user': 'sendgrid',
+        'repositories': [
+            "sendgrid-csharp",
+            # "smtpapi-csharp"
+        ]
+    }
+}
+
 
 class TestDBConnector(unittest.TestCase):
+
     def setUp(self):
         if os.environ.get('TRAVIS') == None:
             self.db = DBConnector()
 
-    def test_add_and_delete_data(self):
+    def test_add_and_delete_github_data(self):
         if os.environ.get('TRAVIS') == None:
             github_data_import = GitHubData(
-                                    date_updated=datetime.datetime.now(),
-                                    language='repo_name',
-                                    pull_requests=0,
-                                    open_issues=0,
-                                    number_of_commits=0,
-                                    number_of_branches=0,
-                                    number_of_releases=0,
-                                    number_of_contributors=0,
-                                    number_of_watchers=0,
-                                    number_of_stargazers=0,
-                                    number_of_forks=0
-                                    )
+                date_updated=datetime.datetime.now(),
+                language='repo_name',
+                pull_requests=0,
+                open_issues=0,
+                number_of_commits=0,
+                number_of_branches=0,
+                number_of_releases=0,
+                number_of_contributors=0,
+                number_of_watchers=0,
+                number_of_stargazers=0,
+                number_of_forks=0
+            )
             res = self.db.add_data(github_data_import)
             self.assertTrue(isinstance(res, GitHubData))
             res = self.db.delete_data(res.id, 'github_data')
             self.assertTrue(res)
 
+    def test_add_and_delete_package_data(self):
+        if os.environ.get('TRAVIS') == None:
             packagedata = PackageManagerData(
-                                    date_updated=datetime.datetime.now(),
-                                    csharp_downloads=0,
-                                    nodejs_downloads=0,
-                                    php_downloads=0,
-                                    python_downloads=0,
-                                    ruby_downloads=0
-                                    )
+                date_updated=datetime.datetime.now(),
+                csharp_downloads=0,
+                nodejs_downloads=0,
+                php_downloads=0,
+                python_downloads=0,
+                ruby_downloads=0
+            )
             res = self.db.add_data(packagedata)
             self.assertTrue(isinstance(res, PackageManagerData))
             res = self.db.delete_data(res.id, 'package_manager_data')
@@ -100,8 +130,9 @@ class TestGitHub(unittest.TestCase):
 
     def test_update_library_data(self):
         if os.environ.get('TRAVIS') == None:
-            res = self.github.update_library_data(self.config.github_user,
-                                                self.config.github_repos[0])
+            config = MOCK_DATA['github_config']
+            res = self.github.update_library_data(config['user'],
+                                                  config['repositories'][0])
             self.assertTrue(isinstance(res, GitHubData))
             res = self.db.delete_data(res.id, 'github_data')
             self.assertTrue(res)
