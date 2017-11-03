@@ -1,11 +1,17 @@
 import os
 import datetime
+import vcr
+
 try:
     import unittest2 as unittest
 except ImportError:
     import unittest
 
-from unittest.mock import patch
+try:
+    from mock import patch
+except ImportError:
+    from unittest.mock import patch
+
 
 if os.environ.get('TRAVIS') is None:
     from db_connector import DBConnector, GitHubData, PackageManagerData
@@ -13,7 +19,6 @@ if os.environ.get('TRAVIS') is None:
     from github import GitHub
     from package_managers import PackageManagers
     from sendgrid_email import SendGrid
-    import vcr
 try:
     basestring
 except NameError:

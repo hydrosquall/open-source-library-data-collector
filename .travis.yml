@@ -7,6 +7,7 @@ python:
 - '3.4'
 - '3.5'
 install:
+- pip install mock==2.0  # http://railslide.io/travis-mock-afternoon-of-frustration.html
 - pip install -r requirements.txt
 script:
 - pip install -r requirements_dev.txt
